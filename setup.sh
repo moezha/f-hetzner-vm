@@ -29,6 +29,19 @@ else
     error "Configuration file $CONFIG_FILE not found."
 fi
 
+# 3. OS Version Guard
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    if [[ "$ID" != "ubuntu" ]]; then
+        error "This script requires Ubuntu. Detected: $ID"
+    fi
+    if [[ "$VERSION_ID" != "22.04" && "$VERSION_ID" != "24.04" ]]; then
+         log "WARNING: Tested on 22.04/24.04. Current: $VERSION_ID - Proceeding with caution."
+    fi
+else
+    error "Cannot detect OS version."
+fi
+
 # --- Execution ---
 
 log "Starting Setup for $HOSTNAME..."
