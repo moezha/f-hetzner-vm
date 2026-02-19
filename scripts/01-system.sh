@@ -39,12 +39,13 @@ CURRENT_HOSTNAME=$(hostname)
 if [ "$CURRENT_HOSTNAME" != "$HOSTNAME" ]; then
     echo "Updating hostname to $HOSTNAME..."
     hostnamectl set-hostname "$HOSTNAME"
-    
-    # fix /etc/hosts to avoid sudo resolution lag
-    sed -i "s/127.0.0.1 localhost/127.0.0.1 localhost $HOSTNAME/" /etc/hosts
 else
     echo "Hostname is already correct."
 fi
+
+sed -i '/^127.0.1.1/d' /etc/hosts
+echo "127.0.1.1 $HOSTNAME" >> /etc/hosts
+echo "Hosts file updated."
 
 # --- 4. Timezone ---
 echo "Setting timezone: $TIMEZONE"
