@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 [ -f config.env ] && source config.env
 
 echo "--- [Security] Hardening Process ---"
