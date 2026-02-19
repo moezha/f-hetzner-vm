@@ -1,8 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 # grab local vars for testing
-[ -f config.env ] && source config.env
-
+CONFIG_FILE="config.env"
+if [ -f "$CONFIG_FILE" ]; then
+    if [ "$(stat -c '%U' "$CONFIG_FILE")" != "root" ]; then
+        echo "Error: $CONFIG_FILE must be owned by root." >&2; exit 1
+    fi
+    if [[ "$(stat -c '%A' "$CONFIG_FILE")" =~ ^....w.... ]] || [[ "$(stat -c '%A' "$CONFIG_FILE")" =~ ^.......w. ]]; then
+        echo "Error: $CONFIG_FILE is writable by non-owner." >&2; exit 1
+    fi
+    source "$CONFIG_FILE"
+fi
 echo "--- [System] Starting Base Configuration ---"
 
 # --- 1. System Update ---
