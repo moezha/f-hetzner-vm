@@ -22,8 +22,8 @@ else
     usermod -aG sudo "$DEPLOY_USER"
 fi
 
-# Allow sudo without password for automation
-echo "$DEPLOY_USER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/90-$DEPLOY_USER"
+# Allow sudo without password only for service management
+echo "$DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart *, /usr/bin/systemctl reload *" > "/etc/sudoers.d/90-$DEPLOY_USER"
 chmod 0440 "/etc/sudoers.d/90-$DEPLOY_USER"
 
 # --- 2. SSH Keys ---
