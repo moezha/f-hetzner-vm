@@ -30,7 +30,7 @@ $netCmds = @(
 )
 
 foreach ($cmd in $netCmds) {
-    multipass exec $VmName -- bash -c "$cmd" | Out-Null
+    Invoke-Expression "multipass exec $VmName -- $cmd" | Out-Null
 }
 
 # Connectivity Check
@@ -83,7 +83,7 @@ multipass exec $VmName -- sudo apt-get update -qq
 $execCmd = "find $RemoteDir -type f -name '*.sh' -exec sed -i 's/\r$//' {} \;"
 multipass exec $VmName -- bash -c $execCmd
 
-$setupCmd = "cd $RemoteDir && chmod +x setup.sh && sudo ./setup.sh"
+$setupCmd = "cd $RemoteDir && sudo chown root:root config.env && sudo chmod 600 config.env && chmod +x setup.sh && sudo ./setup.sh"
 multipass exec $VmName -- bash -c $setupCmd
 
 # Final Report
