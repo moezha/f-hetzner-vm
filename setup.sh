@@ -3,6 +3,8 @@ set -euo pipefail
 
 LOG_FILE="/var/log/setup_$(date +%F_%H-%M).log"
 exec > >(tee -i "$LOG_FILE") 2>&1
+log() { echo -e "[\e[32m$(date +'%H:%M:%S')\e[0m] $1"; }
+error() { echo -e "[\e[31mERROR\e[0m] $1"; exit 1; }
 
 trap 'echo -e "\n[\e[31mFATAL\e[0m] Script failed on line $LINENO. See log: $LOG_FILE"; exit 1' ERR
 
