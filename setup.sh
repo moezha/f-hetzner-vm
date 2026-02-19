@@ -1,5 +1,13 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+LOG_FILE="/var/log/setup_$(date +%F_%H-%M).log"
+exec > >(tee -i "$LOG_FILE") 2>&1
+
+trap 'echo -e "\n[\e[31mFATAL\e[0m] Script failed on line $LINENO. See log: $LOG_FILE"; exit 1' ERR
+
+log "--- Setup Started: $(date) ---"
+log "Logs saved to: $LOG_FILE"
 
 # Path to configuration
 CONFIG_FILE="config.env"
@@ -24,6 +32,14 @@ fi
 
 # 2. Check for config file
 if [ -f "$CONFIG_FILE" ]; then
+    if [ "$(stat -c '%U' "$CONFIG_FILE")" != "root" ]; then
+        error "Security Violation: $CONFIG_FILE must be owned by root."
+    fi
+
+    if [[ "$(stat -c '%A' "$CONFIG_FILE")" =~ ^....w.... ]] || [[ "$(stat -c '%A' "$CONFIG_FILE")" =~ ^.......w. ]]; then
+         error "Security Violation: $CONFIG_FILE is writable by non-owner (Mode: $(stat -c '%a' "$CONFIG_FILE"))."
+    fi
+
     source "$CONFIG_FILE"
 else
     error "Configuration file $CONFIG_FILE not found."
