@@ -23,8 +23,23 @@ else
 fi
 
 # Allow sudo without password only for service management
-echo "$DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart *, /usr/bin/systemctl reload *" > "/etc/sudoers.d/90-$DEPLOY_USER"
-chmod 0440 "/etc/sudoers.d/90-$DEPLOY_USER"
+SUDO_FILE="/etc/sudoers.d/90-$DEPLOY_USER"
+
+# Create tmp file to validate syntax(step0)
+cat > "$SUDO_FILE.tmp" <<EOF
+$DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart *, /usr/bin/systemctl reload *, /usr/bin/docker *
+EOF
+
+# Validate syntax with visudo (step1)
+if visudo -cf "$SUDO_FILE.tmp"; then
+    mv "$SUDO_FILE.tmp" "$SUDO_FILE"
+    chmod 0440 "$SUDO_FILE"
+    echo "Sudoers file updated and verified."
+else
+    rm "$SUDO_FILE.tmp"
+    echo "ERROR: Invalid sudoers syntax generated. Aborting."
+    exit 1
+fi
 
 # --- 2. SSH Keys ---
 if [ -z "$SSH_PUB_KEY" ]; then
