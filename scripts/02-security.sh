@@ -52,7 +52,7 @@ mkdir -p "$USER_SSH_DIR"
 
 touch "$USER_SSH_DIR/authorized_keys"
 
-if ! grep -qF "$SSH_PUB_KEY" "$USER_SSH_DIR/authorized_keys"; then
+if ! grep -qxF "$SSH_PUB_KEY" "$USER_SSH_DIR/authorized_keys"; then
     echo "$SSH_PUB_KEY" >> "$USER_SSH_DIR/authorized_keys"
     echo "SSH Key added."
 else
