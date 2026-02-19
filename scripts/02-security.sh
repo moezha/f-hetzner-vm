@@ -102,7 +102,7 @@ update_ssh_conf "PermitRootLogin" "no"
 update_ssh_conf "PasswordAuthentication" "no"
 update_ssh_conf "PubkeyAuthentication" "yes"
 update_ssh_conf "ChallengeResponseAuthentication" "no"
-update_ssh_conf "UsePAM" "yes"
+update_ssh_conf "UsePAM" "no"
 
 # Final syntax check before restart
 if sshd -t; then
