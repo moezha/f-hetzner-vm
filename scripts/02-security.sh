@@ -73,7 +73,7 @@ cat > /etc/fail2ban/jail.local <<EOF
 enabled = true
 port = ssh
 filter = sshd
-logpath = /var/log/auth.log
+backend = systemd
 maxretry = 3
 bantime = 3600
 EOF
