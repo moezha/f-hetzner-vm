@@ -30,7 +30,7 @@ $netCmds = @(
 )
 
 foreach ($cmd in $netCmds) {
-    multipass exec $VmName -- bash -c $cmd | Out-Null
+    multipass exec $VmName -- bash -c "$cmd" | Out-Null
 }
 
 # Connectivity Check
