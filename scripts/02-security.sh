@@ -35,8 +35,14 @@ fi
 USER_SSH_DIR="/home/$DEPLOY_USER/.ssh"
 mkdir -p "$USER_SSH_DIR"
 
-# Overwrite/Set authorized_keys
-echo "$SSH_PUB_KEY" > "$USER_SSH_DIR/authorized_keys"
+touch "$USER_SSH_DIR/authorized_keys"
+
+if ! grep -qF "$SSH_PUB_KEY" "$USER_SSH_DIR/authorized_keys"; then
+    echo "$SSH_PUB_KEY" >> "$USER_SSH_DIR/authorized_keys"
+    echo "SSH Key added."
+else
+    echo "SSH Key already present."
+fi
 
 # Set perms
 chmod 700 "$USER_SSH_DIR"
