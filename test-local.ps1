@@ -80,8 +80,8 @@ Log "Executing bootstrap..."
 multipass exec $VmName -- sudo apt-get update -qq
 
 # Sanitize scripts (LF conversion) and execute
-$execCmd = "find $RemoteDir -type f -name '*.sh' -exec sed -i 's/\r$//' {} \;"
-multipass exec $VmName -- bash -c $execCmd
+$execCmd = "find $RemoteDir -type f -name '*.sh' -exec sed -i 's/\r$//' {} \; && sed -i 's/\r$//' $RemoteDir/config.env"
+Invoke-Expression "multipass exec $VmName -- bash -c `"$execCmd`""
 
 $setupCmd = "cd $RemoteDir && sudo chown root:root config.env && sudo chmod 600 config.env && chmod +x setup.sh && sudo ./setup.sh"
 multipass exec $VmName -- bash -c $setupCmd
