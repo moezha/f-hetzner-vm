@@ -56,7 +56,7 @@ $envConfig = @"
 HOSTNAME="$VmName"
 TIMEZONE="Europe/Berlin"
 DEPLOY_USER="deploy"
-SSH_PUB_KEY="$(Get-Content $sshKey)"
+SSH_PUB_KEY="$((Get-Content $sshKey -Raw).Trim())"
 "@
 Set-Content -Path "config.env" -Value $envConfig -Encoding ASCII
 
