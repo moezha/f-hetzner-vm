@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -euo pipefail
 # grab local vars for testing
 [ -f config.env ] && source config.env
 
