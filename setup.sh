@@ -78,5 +78,6 @@ run_script() {
 
 run_script "scripts/01-system.sh"
 run_script "scripts/02-security.sh"
+run_script "scripts/03-docker.sh"
 
 log "Setup Complete!"
