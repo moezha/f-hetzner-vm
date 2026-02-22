@@ -55,4 +55,9 @@ if [[ -n "$LE_EMAIL" && "$DOMAIN" =~ \.[a-z]+$ ]]; then
     certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$LE_EMAIL" --redirect
     
     # ensure automatic renewal timer is active
-    systemctl enable --
+    systemctl enable --now certbot.timer
+else
+    echo "skipping let's encrypt (local domain or missing LE_EMAIL)."
+fi
+
+echo "--- nginx configured ---"
