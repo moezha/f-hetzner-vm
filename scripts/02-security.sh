@@ -22,19 +22,41 @@ else
     usermod -aG sudo "$DEPLOY_USER"
 fi
 
-# Allow sudo without password only for service management
-SUDO_FILE="/etc/sudoers.d/90-$DEPLOY_USER"
+# --- Secure Sudo Wrapper for Deployment ---
+echo "Configuring secure sudo wrapper..."
+WRAPPER_SCRIPT="/usr/local/bin/deploy-actions.sh"
 
-# Create tmp file to validate syntax(step0)
-cat > "$SUDO_FILE.tmp" <<EOF
-$DEPLOY_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart *, /usr/bin/systemctl reload *, /usr/bin/docker *
+# 1. Create a highly restricted script for the deploy user
+cat > "$WRAPPER_SCRIPT" << 'EOF'
+#!/bin/bash
+# This script for what the deploy user is allowed to do.
+
+if [ "$1" == "deploy" ]; then
+    echo "Running deployment tasks..."
+    # TODO: DEPLOYING TASKS HERE WHEN I DEV DOCKER CODE PART
+else
+    echo "Unauthorized action. You can only run: sudo /usr/local/bin/deploy-actions.sh deploy"
+    exit 1
+fi
 EOF
 
-# Validate syntax with visudo (step1)
+# Lock down the wrapper script (only root can edit it)
+chmod 700 "$WRAPPER_SCRIPT"
+chown root:root "$WRAPPER_SCRIPT"
+
+# 2. Allow sudo without password ONLY for this specific script
+SUDO_FILE="/etc/sudoers.d/90-$DEPLOY_USER"
+
+# Create tmp file to validate syntax
+cat > "$SUDO_FILE.tmp" <<EOF
+$DEPLOY_USER ALL=(ALL) NOPASSWD: $WRAPPER_SCRIPT
+EOF
+
+# Validate syntax with visudo
 if visudo -cf "$SUDO_FILE.tmp"; then
     mv "$SUDO_FILE.tmp" "$SUDO_FILE"
     chmod 0440 "$SUDO_FILE"
-    echo "Sudoers file updated and verified."
+    echo "Sudoers file updated with secure wrapper."
 else
     rm "$SUDO_FILE.tmp"
     echo "ERROR: Invalid sudoers syntax generated. Aborting."
