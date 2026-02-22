@@ -1,59 +1,51 @@
-# Hetzner VM Bootstrapping
+﻿# Hetzner VM Bootstrapping
 
 Automated deployment and hardening for Ubuntu 22.04 VMs using Multipass on Windows hosts. This setup includes specific patches for corporate network environments and cross-platform compatibility.
 
-## Features
-* **Automated Provisioning**: Fresh Multipass instance creation.
-* **Network Fixes**: System DNS override to `8.8.8.8` and IPv6 disablement for stable connectivity.
-* **Security Hardening**: 
-    * Dedicated `deploy` user creation.
-    * SSH hardening (Root login and password auth disabled).
-    * **UFW** configuration (Ports 22, 80, 443).
-    * **Fail2Ban** installation for brute-force protection.
+##  Architecture Overview
 
-## Core Modules
+The infrastructure is built on Ubuntu 22.04 LTS and structured around modular shell scripts.
 
-### 01 - System Configuration
-Standardizes the base environment:
-* **Package Management**: Non-interactive system updates and upgrades.
-* **Tooling**: Installs `curl`, `git`, `htop`, and `unzip`.
-* **Localization**: Sets the system hostname and timezone (`Europe/Berlin`).
+* **Runtime:** Docker & Docker Compose (running a lightweight Go `http-echo` container).
+* **Web Tier:** Nginx acting as a reverse proxy, with automated Let's Encrypt SSL.
+* **Security:** UFW (default deny), Fail2ban (SSH protection), and strict OpenSSH hardening.
+* **Monitoring:** Prometheus Node Exporter (system metrics) and strict log rotation.
 
-### 02 - Security Hardening
-Secures the instance for production-like environments:
-* **User Management**: Creates a `deploy` user with passwordless sudo access.
-* **SSH Hardening**: Disables root login and password-based authentication.
-* **Firewall (UFW)**: Strictly allows only ports 22, 80, and 443.
-* **Intrusion Prevention**: Configures **Fail2Ban** to monitor and block SSH brute-force attempts.
-## Prerequisites
-* Windows 10/11 with PowerShell 5.1+.
-* Multipass for Windows.
-* SSH Key: `id_ed25519` or `id_rsa` in `~/.ssh/`.
+##  Key Architectural Decisions
 
-## Structure
-* `test-local.ps1`: PowerShell runner for Windows.
-* `setup.sh`: Main entry point for Linux configuration.
-* `scripts/`: Modular shell scripts (System, Security, etc.).
-* `config.env`: Auto-generated environment variables.
+1.  **Modular & Idempotent Execution**
+    Instead of a single monolithic script, the setup is divided into logical modules (`01-system.sh` to `06-monitor.sh`). State checks (e.g., `if ! command -v docker`) ensure scripts can be re-run safely without breaking existing configurations.
+2.  **Defense in Depth (Security)**
+    * **Root Disabled:** Root SSH login and password authentication are completely disabled. 
+    * **Least Privilege:** A dedicated `deploy` user is created and added to the `docker` group, allowing CI/CD pipelines to manage containers without `sudo` access.
+    * **Host-Level Firewall:** UFW is configured directly on the OS. Even if the cloud provider's external firewall is misconfigured, the server remains isolated (only ports 22, 80, and 443 are exposed).
+3.  **Preventing Disk Exhaustion (Reliability)**
+    Default Docker and Nginx configurations will eventually fill a server's disk with logs. This setup injects a `daemon.json` to limit container logs (max 50MB, 3 files) and enforces aggressive `logrotate` rules for Nginx.
+4.  **Configuration Management**
+    Environment-specific variables (SSH keys, domains, user names) are isolated in a root-owned, strictly permissioned `config.env` file. The bootstrap script validates the ownership of this file to prevent privilege escalation during execution.
 
-## Usage
-1. Clone the repository to a local Windows directory.
-2. Open PowerShell as Administrator.
-3. Execute the runner:
-   ```powershell
-   .\test-local.ps1
-    ```
-## Verification
-* **Network Configuration**: 
-The script bypasses missing Hyper-V default switches by targeting active adapters and applying DNS overrides.
+## 🚀 Setup Instructions
 
-* **Security Status**: 
-Service verification ensures the firewall is active and Fail2Ban is monitoring SSH traffic.
+### Prerequisites
+* A clean Ubuntu 22.04 server (or a local Multipass VM).
+* An SSH key pair (`id_ed25519`).
 
-* **Access**: 
-Connect to the instance using the deploy user:
-   ```
-    ssh deploy@<VM_IP> -i ~/.ssh/id_ed25519
-    ```
+### 1. Configuration
+Copy the configuration template and populate it with your environment details:
 
-![alt text](image.png)
+```bash
+    cp config.env.example config.env
+```
+Ensure `config.env` contains your public SSH key, desired timezone, and domain information.
+
+### 2. Local Testing (Multipass)
+To test the deployment locally on Windows, execute the provided PowerShell harness. This spins up an Ubuntu VM, overrides local DNS, sanitizes line endings (CRLF to LF), and executes the bootstrap sequence:
+```bash
+    .\test-local.ps1
+```
+
+## 🔍 Validation & Health Checks
+Once provisioned, verify the following:
+* **App Health:** `curl https://<DOMAIN>/health` (Returns HTTP 200 `OK`)
+* **Metrics:** Connect via SSH and run `curl localhost:9100/metrics`
+* **Firewall:** Ensure `curl <IP>:8080` times out (blocked by UFW).
