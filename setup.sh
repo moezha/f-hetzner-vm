@@ -80,5 +80,7 @@ run_script "scripts/01-system.sh"
 run_script "scripts/02-security.sh"
 run_script "scripts/03-docker.sh"
 run_script "scripts/04-app.sh"
+run_script "scripts/05-nginx.sh"
+run_script "scripts/06-monitor.sh"
 
 log "Setup Complete!"
