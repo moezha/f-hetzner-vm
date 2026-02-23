@@ -47,5 +47,6 @@ jobs:
                  DEPLOY_USER="$DEPLOY_USER" \
                  DOMAIN="$DOMAIN" \
                  LE_EMAIL="$LE_EMAIL" \
+                 ALERT_EMAIL="$LE_EMAIL" \
                  ./setup.sh
             rm -f keys.txt
