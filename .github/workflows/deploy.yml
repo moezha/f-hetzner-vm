@@ -1,0 +1,36 @@
+name: Deploy Infrastructure to Hetzner
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy files to Server via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HETZNER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "scripts/,setup.sh,config.env"
+          target: "/home/deploy/infra-setup"
+          overwrite: true
+
+      - name: Execute Setup Scripts
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HETZNER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "--- Starting Automated Deployment ---"
+            cd /home/deploy/infra-setup
+            chmod +x setup.sh
+            # Run the setup script using sudo
+            sudo ./setup.sh
