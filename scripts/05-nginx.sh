@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-CONFIG_FILE="config.env"
-[ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
-
 # fallback vars if not defined in config.env
 DOMAIN="${DOMAIN:-$HOSTNAME}"
 LE_EMAIL="${LE_EMAIL:-}"

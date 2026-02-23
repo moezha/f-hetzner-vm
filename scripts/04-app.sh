@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-CONFIG_FILE="config.env"
-[ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
-
 echo "--- deploying demo app ---"
 
 APP_DIR="/opt/demo-app"

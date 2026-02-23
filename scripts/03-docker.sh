@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-CONFIG_FILE="config.env"
-[ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
-
 echo "--- setting up docker ---"
 
 if ! command -v docker &> /dev/null; then
