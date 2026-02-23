@@ -11,7 +11,7 @@ systemctl enable --now prometheus-node-exporter
 
 # force stricter log rotation for nginx to prevent disk bloat
 # keeps 14 days of logs, compresses them, and signals nginx to reload
-cat > /etc/logrotate.d/nginx << 'EOF'
+cat > /etc/logrotate.d/nginx-custom << 'EOF'
 /var/log/nginx/*.log {
     daily
     missingok
@@ -30,6 +30,6 @@ cat > /etc/logrotate.d/nginx << 'EOF'
 EOF
 
 # test logrotate config for syntax errors
-logrotate -d /etc/logrotate.d/nginx >/dev/null 2>&1
+logrotate -d /etc/logrotate.d/nginx-custom >/dev/null 2>&1
 
 echo "--- monitoring configured ---"
