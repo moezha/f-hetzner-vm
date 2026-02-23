@@ -18,22 +18,34 @@ jobs:
           host: ${{ secrets.HETZNER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "scripts/,setup.sh,config.env"
+          source: "scripts/,setup.sh"
           target: "/home/deploy/infra-setup"
           overwrite: true
 
       - name: Execute Setup Scripts
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          PUB_KEYS: ${{ secrets.AUTHORIZED_KEYS_LIST }}
+          SERVER_HOSTNAME: ${{ secrets.SERVER_HOSTNAME }}
+          TIMEZONE: ${{ secrets.TIMEZONE }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DOMAIN: ${{ secrets.DOMAIN }}
+          LE_EMAIL: ${{ secrets.LE_EMAIL }}
         with:
           host: ${{ secrets.HETZNER_IP }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: PUB_KEYS,SERVER_HOSTNAME,TIMEZONE,DEPLOY_USER,DOMAIN,LE_EMAIL
           script: |
             echo "--- Starting Automated Deployment ---"
             cd /home/deploy/infra-setup
+            echo "$PUB_KEYS" > keys.txt
             chmod +x setup.sh
-            # Transfer ownership to root to satisfy the security checks
-            sudo chown root:root config.env
-            sudo chmod 600 config.env
-            # Run the setup script using sudo
-            sudo ./setup.sh
+            # We pass variables into sudo because sudo clears the environment by default
+            sudo SERVER_HOSTNAME="$SERVER_HOSTNAME" \
+                 TIMEZONE="$TIMEZONE" \
+                 DEPLOY_USER="$DEPLOY_USER" \
+                 DOMAIN="$DOMAIN" \
+                 LE_EMAIL="$LE_EMAIL" \
+                 ./setup.sh
+            rm -f keys.txt
