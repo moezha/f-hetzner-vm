@@ -11,29 +11,22 @@ trap 'echo -e "\n[\e[31mFATAL\e[0m] Script failed on line $LINENO. See log: $LOG
 log "--- Setup Started: $(date) ---"
 log "Logs saved to: $LOG_FILE"
 
-# Path to configuration
-CONFIG_FILE="config.env"
+# --- Configuration Mapping ---
+export HOSTNAME="${SERVER_HOSTNAME:-}"
+export TIMEZONE="${TIMEZONE:-}"
+export DEPLOY_USER="${DEPLOY_USER:-}"
+export DOMAIN="${DOMAIN:-}"
+export LE_EMAIL="${LE_EMAIL:-}"
+
+# Clean up "none" placeholders from GitHub
+[[ "$DOMAIN" == "none" ]] && export DOMAIN=""
+[[ "$LE_EMAIL" == "none" ]] && export LE_EMAIL=""
 
 # --- Pre-flight Checks ---
-
-# 1. Check if running as root
-if [ "$EUID" -ne 0 ]; then
-  error "Please run this script as root."
-fi
-
-# 2. Check for config file
-if [ -f "$CONFIG_FILE" ]; then
-    if [ "$(stat -c '%U' "$CONFIG_FILE")" != "root" ]; then
-        error "Security Violation: $CONFIG_FILE must be owned by root."
-    fi
-
-    if [[ "$(stat -c '%A' "$CONFIG_FILE")" =~ ^....w.... ]] || [[ "$(stat -c '%A' "$CONFIG_FILE")" =~ ^.......w. ]]; then
-         error "Security Violation: $CONFIG_FILE is writable by non-owner (Mode: $(stat -c '%a' "$CONFIG_FILE"))."
-    fi
-
-    source "$CONFIG_FILE"
-else
-    error "Configuration file $CONFIG_FILE not found."
+# ... check root ...
+# 2. Check for required variables
+if [ -z "$HOSTNAME" ] || [ -z "$TIMEZONE" ] || [ -z "$DEPLOY_USER" ]; then
+    error "Missing required environment variables (SERVER_HOSTNAME, TIMEZONE, or DEPLOY_USER)."
 fi
 
 # 3. OS Version Guard
