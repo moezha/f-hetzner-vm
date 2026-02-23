@@ -59,7 +59,7 @@ if [ -z "$SSH_PUB_KEY" ]; then
     exit 1
 fi
 
-USER_SSH_DIR="/home/$DEPLOY_USER/.ssh"
+USER_SSH_DIR="$(eval echo ~$DEPLOY_USER)/.ssh"
 mkdir -p "$USER_SSH_DIR"
 
 touch "$USER_SSH_DIR/authorized_keys"
