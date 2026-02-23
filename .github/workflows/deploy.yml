@@ -32,5 +32,8 @@ jobs:
             echo "--- Starting Automated Deployment ---"
             cd /home/deploy/infra-setup
             chmod +x setup.sh
+            # Transfer ownership to root to satisfy the security checks
+            sudo chown root:root config.env
+            sudo chmod 600 config.env
             # Run the setup script using sudo
             sudo ./setup.sh
