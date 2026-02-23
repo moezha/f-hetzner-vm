@@ -58,8 +58,8 @@ run_script() {
     local script_name=$1
     if [ -f "$script_name" ]; then
         log "Running module: $script_name"
-        # Pass environment variables to the script
-        bash "$script_name"
+        # Source the script so it inherits config variables
+        source "$script_name"
     else
         error "Script $script_name not found!"
     fi
