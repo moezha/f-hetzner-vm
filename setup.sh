@@ -14,17 +14,6 @@ log "Logs saved to: $LOG_FILE"
 # Path to configuration
 CONFIG_FILE="config.env"
 
-# --- Helper Functions ---
-
-log() {
-    echo -e "[\e[32m$(date +'%H:%M:%S')\e[0m] $1"
-}
-
-error() {
-    echo -e "[\e[31mERROR\e[0m] $1"
-    exit 1
-}
-
 # --- Pre-flight Checks ---
 
 # 1. Check if running as root
