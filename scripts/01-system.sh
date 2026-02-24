@@ -31,9 +31,22 @@ else
     echo "Hostname is already correct."
 fi
 
-sed -i '/^127.0.1.1/d' /etc/hosts
-echo "127.0.1.1 $HOSTNAME" >> /etc/hosts
-echo "Hosts file updated."
+# Check if the exact line already exists (Idempotent check)
+if ! grep -qxF "127.0.1.1 $HOSTNAME" /etc/hosts; then
+    echo "Updating 127.0.1.1 entry in hosts file..."
+    
+    # Use grep -v to safely filter out any old 127.0.1.1 lines to a temp file
+    grep -v "^127\.0\.1\.1" /etc/hosts > /etc/hosts.tmp
+    
+    # Append the perfect new line
+    echo "127.0.1.1 $HOSTNAME" >> /etc/hosts.tmp
+    
+    # Overwrite using cat to preserve the original file's inode and permissions
+    cat /etc/hosts.tmp > /etc/hosts
+    rm -f /etc/hosts.tmp
+else
+    echo "Hosts file is already perfectly configured."
+fi
 
 # --- 4. Timezone ---
 echo "Setting timezone: $TIMEZONE"
