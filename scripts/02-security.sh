@@ -19,13 +19,16 @@ USER_SSH_DIR="$(eval echo ~$DEPLOY_USER)/.ssh"
 mkdir -p "$USER_SSH_DIR"
 touch "$USER_SSH_DIR/authorized_keys"
 
-if [ -f "keys.txt" ]; then
+KEYS_ADDED=false
+
+if [ -s "keys.txt" ]; then
     echo "Injecting keys from GitHub Secrets..."
     cat keys.txt >> "$USER_SSH_DIR/authorized_keys"
     awk '!a[$0]++' "$USER_SSH_DIR/authorized_keys" > "$USER_SSH_DIR/authorized_keys.tmp"
     mv "$USER_SSH_DIR/authorized_keys.tmp" "$USER_SSH_DIR/authorized_keys"
+    KEYS_ADDED=true
 else
-    echo "WARNING: keys.txt not found. No keys added to $DEPLOY_USER."
+    echo "WARNING: keys.txt missing or empty. No keys added to $DEPLOY_USER."
 fi
 
 # Set perms
@@ -70,10 +73,16 @@ update_ssh_conf() {
 
 # Apply lockdown rules
 update_ssh_conf "PermitRootLogin" "no"
-update_ssh_conf "PasswordAuthentication" "no"
 update_ssh_conf "PubkeyAuthentication" "yes"
 update_ssh_conf "ChallengeResponseAuthentication" "no"
 update_ssh_conf "UsePAM" "yes"
+
+if [ "$KEYS_ADDED" = true ]; then
+    update_ssh_conf "PasswordAuthentication" "no"
+else
+    echo "WARNING: No SSH keys added. Keeping PasswordAuthentication enabled to prevent lockout."
+    update_ssh_conf "PasswordAuthentication" "yes"
+fi
 
 # Final syntax check before restart
 if sshd -t; then
