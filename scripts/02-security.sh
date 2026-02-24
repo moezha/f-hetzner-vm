@@ -33,9 +33,13 @@ KEYS_ADDED=false
 
 if [ -n "${SSH_PUB_KEY:-}" ]; then
     echo "Injecting SSH key from environment variable..."
-    echo "$SSH_PUB_KEY" | tr -d '\r' >> "$USER_SSH_DIR/authorized_keys"
-    awk '!a[$0]++' "$USER_SSH_DIR/authorized_keys" > "$USER_SSH_DIR/authorized_keys.tmp"
-    mv "$USER_SSH_DIR/authorized_keys.tmp" "$USER_SSH_DIR/authorized_keys"
+    # Strip Windows characters and store in a temporary variable
+    CLEAN_KEY=$(echo "$SSH_PUB_KEY" | tr -d '\r')
+    
+    # Check if the exact key already exists in the file (idempotent check)
+    if ! grep -qxF "$CLEAN_KEY" "$USER_SSH_DIR/authorized_keys"; then
+        echo "$CLEAN_KEY" >> "$USER_SSH_DIR/authorized_keys"
+    fi
     KEYS_ADDED=true
 else
     echo "WARNING: SSH_PUB_KEY is empty or not set. No keys added to $DEPLOY_USER."
