@@ -13,6 +13,7 @@ apt-get install -y -q mailutils postfix
 # 2. Create the notification script
 cat > /usr/local/bin/ssh-login-notify.sh << 'EOF'
 #!/bin/bash
+set -euo pipefail
 if [ "$PAM_TYPE" != "close_session" ]; then
     RECIPIENT_EMAIL=$(printenv ALERT_EMAIL)
     
