@@ -25,7 +25,6 @@ if id "$DEPLOY_USER" &>/dev/null; then
 fi
 
 # boot the container
-cd "$APP_DIR"
-docker compose up -d
+docker compose -f "$APP_DIR/docker-compose.yml" up -d
 
 echo "--- demo app deployed ---"

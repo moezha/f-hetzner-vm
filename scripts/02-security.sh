@@ -12,23 +12,21 @@ else
     usermod -aG sudo "$DEPLOY_USER"
 fi
 
-usermod -aG sudo "$DEPLOY_USER"
-
 # --- 2. SSH Keys ---
-USER_SSH_DIR="$(eval echo ~$DEPLOY_USER)/.ssh"
+USER_SSH_DIR="$(getent passwd "$DEPLOY_USER" | cut -d: -f6)/.ssh"
 mkdir -p "$USER_SSH_DIR"
 touch "$USER_SSH_DIR/authorized_keys"
 
 KEYS_ADDED=false
 
-if [ -s "keys.txt" ]; then
-    echo "Injecting keys from GitHub Secrets..."
-    cat keys.txt >> "$USER_SSH_DIR/authorized_keys"
+if [ -n "${SSH_PUB_KEY:-}" ]; then
+    echo "Injecting SSH key from environment variable..."
+    echo "$SSH_PUB_KEY" | tr -d '\r' >> "$USER_SSH_DIR/authorized_keys"
     awk '!a[$0]++' "$USER_SSH_DIR/authorized_keys" > "$USER_SSH_DIR/authorized_keys.tmp"
     mv "$USER_SSH_DIR/authorized_keys.tmp" "$USER_SSH_DIR/authorized_keys"
     KEYS_ADDED=true
 else
-    echo "WARNING: keys.txt missing or empty. No keys added to $DEPLOY_USER."
+    echo "WARNING: SSH_PUB_KEY is empty or not set. No keys added to $DEPLOY_USER."
 fi
 
 # Set perms

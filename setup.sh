@@ -11,8 +11,18 @@ trap 'echo -e "\n[\e[31mFATAL\e[0m] Script failed on line $LINENO. See log: $LOG
 log "--- Setup Started: $(date) ---"
 log "Logs saved to: $LOG_FILE"
 
+if [ -f "config.env" ]; then
+    log "Loading configuration from config.env file..."
+    # set -a automatically exports all variables defined until set +a
+    set -a
+    source config.env
+    set +a
+else
+    log "No .env file found. Relying on system environment variables."
+fi
+
 # --- Configuration Mapping ---
-export HOSTNAME="${SERVER_HOSTNAME:-}"
+export HOSTNAME="${HOSTNAME:-}"
 export TIMEZONE="${TIMEZONE:-}"
 export DEPLOY_USER="${DEPLOY_USER:-}"
 export DOMAIN="${DOMAIN:-}"
