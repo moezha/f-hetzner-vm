@@ -35,8 +35,11 @@ EOF
 chmod +x /usr/local/bin/ssh-login-notify.sh
 
 # 3. Register with PAM
-if ! grep -q "ssh-login-notify.sh" /etc/pam.d/sshd; then
+if ! grep -q "/usr/local/bin/ssh-login-notify.sh" /etc/pam.d/sshd; then
+    echo "--- Registering Notification Script with PAM ---"
     echo "session optional pam_exec.so /usr/local/bin/ssh-login-notify.sh" >> /etc/pam.d/sshd
+else
+    echo "--- PAM Registration already exists, skipping ---"
 fi
 
 echo "--- SSH Email Alerts Configured ---"
