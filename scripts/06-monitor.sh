@@ -11,7 +11,7 @@ systemctl enable --now prometheus-node-exporter
 
 # force stricter log rotation for nginx to prevent disk bloat
 # keeps 14 days of logs, compresses them, and signals nginx to reload
-cat > /etc/logrotate.d/nginx-custom << 'EOF'
+cat > /etc/logrotate.d/nginx << 'EOF'
 /var/log/nginx/*.log {
     daily
     missingok
