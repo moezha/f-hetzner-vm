@@ -9,9 +9,21 @@ if id "$DEPLOY_USER" &>/dev/null; then
 else
     echo "Creating deploy user: $DEPLOY_USER"
     useradd -m -s /bin/bash "$DEPLOY_USER"
-    usermod -aG sudo "$DEPLOY_USER"
 fi
+# Remove from sudo group if they were previously added (for safety on existing VMs)
+deluser "$DEPLOY_USER" sudo 2>/dev/null || true
 
+# Grant granular, passwordless sudo access ONLY for required deployment commands
+echo "Configuring strict sudoers rules for $DEPLOY_USER..."
+SUDOERS_FILE="/etc/sudoers.d/90-${DEPLOY_USER}-deploy"
+
+cat > "$SUDOERS_FILE" << EOF
+# Strict deployment permissions for $DEPLOY_USER
+$DEPLOY_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart nginx, /bin/systemctl reload nginx
+EOF
+
+# Sudoers files MUST have strict permissions or sudo will break entirely
+chmod 0440 "$SUDOERS_FILE"
 # --- 2. SSH Keys ---
 USER_SSH_DIR="$(getent passwd "$DEPLOY_USER" | cut -d: -f6)/.ssh"
 mkdir -p "$USER_SSH_DIR"
