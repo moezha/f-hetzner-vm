@@ -77,8 +77,24 @@ ufw --force enable
 # --- 4. Fail2ban ---
 export DEBIAN_FRONTEND=noninteractive
 apt-get install -y -q fail2ban
-systemctl enable --now fail2ban
 
+# custom jail configuration
+# This overrides the default to use journald instead of auth.log files
+cat > /etc/fail2ban/jail.local << EOF
+[DEFAULT]
+# Use systemd as the default log source for all jails
+backend = systemd
+
+[sshd]
+enabled = true
+port    = ssh
+filter  = sshd
+maxretry = 5
+bantime  = 1h
+findtime = 10m
+EOF
+systemctl enable --now fail2ban
+systemctl restart fail2ban
 # --- 5. SSH Hardening ---
 echo "Hardening sshd_config..."
 
