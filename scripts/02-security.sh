@@ -99,8 +99,9 @@ update_ssh_conf() {
 # Apply lockdown rules
 update_ssh_conf "PermitRootLogin" "no"
 update_ssh_conf "PubkeyAuthentication" "yes"
-update_ssh_conf "ChallengeResponseAuthentication" "no"
 update_ssh_conf "UsePAM" "yes"
+update_ssh_conf "ChallengeResponseAuthentication" "no"
+update_ssh_conf "KbdInteractiveAuthentication" "no"
 
 if [ "$KEYS_ADDED" = true ]; then
     update_ssh_conf "PasswordAuthentication" "no"
