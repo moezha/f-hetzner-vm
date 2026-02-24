@@ -1,6 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
+# --- 0. Validation Guard ---
+# Ensure required variables inherited from setup.sh/config.env are not empty
+if [[ -z "${HOSTNAME:-}" ]]; then error "Variable HOSTNAME is empty. Check your config.env file."; fi
+if [[ -z "${TIMEZONE:-}" ]]; then error "Variable TIMEZONE is empty. Check your config.env file."; fi
+if [[ -z "${DEPLOY_USER:-}" ]]; then error "Variable DEPLOY_USER is empty. Check your config.env file."; fi
+
+echo "--- [System] Validation Passed ---"
+
 # --- 1. System Update ---
 echo "Updating package lists and upgrading system..."
 
