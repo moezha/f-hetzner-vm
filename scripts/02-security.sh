@@ -12,63 +12,20 @@ else
     usermod -aG sudo "$DEPLOY_USER"
 fi
 
-# --- Secure Sudo Wrapper for Deployment ---
-echo "Configuring secure sudo wrapper..."
-WRAPPER_SCRIPT="/usr/local/bin/deploy-actions.sh"
-
-# 1. Create a highly restricted script for the deploy user
-cat > "$WRAPPER_SCRIPT" << 'EOF'
-#!/bin/bash
-# This script for what the deploy user is allowed to do.
-
-if [ "$1" == "deploy" ]; then
-    echo "Running deployment tasks..."
-    # TODO: DEPLOYING TASKS HERE WHEN I DEV DOCKER CODE PART
-else
-    echo "Unauthorized action. You can only run: sudo /usr/local/bin/deploy-actions.sh deploy"
-    exit 1
-fi
-EOF
-
-# Lock down the wrapper script (only root can edit it)
-chmod 700 "$WRAPPER_SCRIPT"
-chown root:root "$WRAPPER_SCRIPT"
-
-# 2. Allow sudo without password ONLY for this specific script
-SUDO_FILE="/etc/sudoers.d/90-$DEPLOY_USER"
-
-# Create tmp file to validate syntax
-cat > "$SUDO_FILE.tmp" <<EOF
-$DEPLOY_USER ALL=(ALL) NOPASSWD: $WRAPPER_SCRIPT
-EOF
-
-# Validate syntax with visudo
-if visudo -cf "$SUDO_FILE.tmp"; then
-    mv "$SUDO_FILE.tmp" "$SUDO_FILE"
-    chmod 0440 "$SUDO_FILE"
-    echo "Sudoers file updated with secure wrapper."
-else
-    rm "$SUDO_FILE.tmp"
-    echo "ERROR: Invalid sudoers syntax generated. Aborting."
-    exit 1
-fi
+usermod -aG sudo "$DEPLOY_USER"
 
 # --- 2. SSH Keys ---
-if [ -z "$SSH_PUB_KEY" ]; then
-    echo "ERROR: SSH_PUB_KEY not found in config.env. Aborting to prevent lockout."
-    exit 1
-fi
-
 USER_SSH_DIR="$(eval echo ~$DEPLOY_USER)/.ssh"
 mkdir -p "$USER_SSH_DIR"
-
 touch "$USER_SSH_DIR/authorized_keys"
 
-if ! grep -qxF "$SSH_PUB_KEY" "$USER_SSH_DIR/authorized_keys"; then
-    echo "$SSH_PUB_KEY" >> "$USER_SSH_DIR/authorized_keys"
-    echo "SSH Key added."
+if [ -f "keys.txt" ]; then
+    echo "Injecting keys from GitHub Secrets..."
+    cat keys.txt >> "$USER_SSH_DIR/authorized_keys"
+    awk '!a[$0]++' "$USER_SSH_DIR/authorized_keys" > "$USER_SSH_DIR/authorized_keys.tmp"
+    mv "$USER_SSH_DIR/authorized_keys.tmp" "$USER_SSH_DIR/authorized_keys"
 else
-    echo "SSH Key already present."
+    echo "WARNING: keys.txt not found. No keys added to $DEPLOY_USER."
 fi
 
 # Set perms
@@ -90,22 +47,9 @@ ufw allow 443/tcp
 ufw --force enable
 
 # --- 4. Fail2ban ---
-echo "Installing Fail2ban..."
 export DEBIAN_FRONTEND=noninteractive
-apt-get install -y fail2ban
-
-# Basic SSH jail config
-cat > /etc/fail2ban/jail.local <<EOF
-[sshd]
-enabled = true
-port = ssh
-filter = sshd
-backend = systemd
-maxretry = 3
-bantime = 3600
-EOF
-
-systemctl restart fail2ban
+apt-get install -y -q fail2ban
+systemctl enable --now fail2ban
 
 # --- 5. SSH Hardening ---
 echo "Hardening sshd_config..."
