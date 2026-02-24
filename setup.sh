@@ -11,14 +11,30 @@ trap 'echo -e "\n[\e[31mFATAL\e[0m] Script failed on line $LINENO. See log: $LOG
 log "--- Setup Started: $(date) ---"
 log "Logs saved to: $LOG_FILE"
 
-if [ -f "config.env" ]; then
-    log "Loading configuration from config.env file..."
-    # set -a automatically exports all variables defined until set +a
+ENV_FILE="config.env"
+if [ -f "$ENV_FILE" ]; then
+    log "Performing security check on $ENV_FILE..."
+    
+    # Extract file owner and permissions using stat
+    ENV_OWNER=$(stat -c "%U" "$ENV_FILE")
+    ENV_PERMS=$(stat -c "%a" "$ENV_FILE")
+
+    # 1. Check Ownership
+    if [ "$ENV_OWNER" != "root" ]; then
+        error "SECURITY ALERT: $ENV_FILE is owned by '$ENV_OWNER', not 'root'. Run: sudo chown root:root $ENV_FILE"
+    fi
+
+    # 2. Check Permissions (Allow 600 read/write, or 400 read-only)
+    if [[ "$ENV_PERMS" != "600" && "$ENV_PERMS" != "400" ]]; then
+        error "SECURITY ALERT: $ENV_FILE permissions are too open ($ENV_PERMS). Run: sudo chmod 600 $ENV_FILE"
+    fi
+
+    log "Security checks passed. Loading configuration..."
     set -a
-    source config.env
+    source "$ENV_FILE"
     set +a
 else
-    log "No .env file found. Relying on system environment variables."
+    log "No config.env file found. Relying on system environment variables."
 fi
 
 # --- Configuration Mapping ---
