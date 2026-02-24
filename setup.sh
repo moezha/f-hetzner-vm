@@ -58,14 +58,19 @@ fi
 # 3. OS Version Guard
 if [ -f /etc/os-release ]; then
     . /etc/os-release
-    if [[ "$ID" != "ubuntu" ]]; then
-        error "This script requires Ubuntu. Detected: $ID"
+    if [[ "${ID:-}" != "ubuntu" ]]; then
+        error "UNSUPPORTED OS: Detected '${ID:-unknown}'. This script is strictly for Ubuntu."
     fi
-    if [[ "$VERSION_ID" != "22.04" && "$VERSION_ID" != "24.04" ]]; then
-         log "WARNING: Tested on 22.04/24.04. Current: $VERSION_ID - Proceeding with caution."
-    fi
+    case "$VERSION_ID" in
+        "20.04"|"22.04"|"24.04")
+            log "OS Check Passed: Ubuntu $VERSION_ID"
+            ;;
+        *)
+            error "UNSUPPORTED VERSION: Ubuntu $VERSION_ID. Please use 20.04, 22.04, or 24.04."
+            ;;
+    esac
 else
-    error "Cannot detect OS version."
+    error "CRITICAL: /etc/os-release not found. Cannot verify OS compatibility."
 fi
 
 # --- Execution ---
