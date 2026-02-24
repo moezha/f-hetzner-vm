@@ -43,7 +43,18 @@ ufw default deny incoming
 ufw default allow outgoing
 
 # Open standard ports
-ufw allow ssh 
+# Safely determine the current SSH port and allow it
+CURRENT_SSH_PORT=$(sshd -T | grep -i '^port ' | awk '{print $2}')
+
+if [ -n "$CURRENT_SSH_PORT" ]; then
+    echo "Allowing SSH on detected port: $CURRENT_SSH_PORT"
+    ufw allow "${CURRENT_SSH_PORT}/tcp"
+else
+    echo "WARNING: Could not detect SSH port. Falling back to port 22."
+    ufw allow 22/tcp
+fi
+
+# Open other standard ports
 ufw allow 80/tcp
 ufw allow 443/tcp
 
