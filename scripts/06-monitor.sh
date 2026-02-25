@@ -30,6 +30,6 @@ cat > /etc/logrotate.d/nginx << 'EOF'
 EOF
 
 # test logrotate config for syntax errors
-logrotate -d /etc/logrotate.d/nginx-custom >/dev/null 2>&1 || true
+logrotate -d /etc/logrotate.d/nginx >/dev/null 2>&1 || true
 
 echo "--- monitoring configured ---"
