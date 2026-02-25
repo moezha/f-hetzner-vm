@@ -44,8 +44,17 @@ To test the deployment locally on Windows, execute the provided PowerShell harne
     .\test-local.ps1
 ```
 
+### 3. inside vm testing:
+```bash
+    sed -i 's/\r$//' setup.sh scripts/*.sh config.env && chmod +x setup.sh && chown root:root config.env && chmod 600 config.env && ./setup.sh
+```
+
 ## 🔍 Validation & Health Checks
 Once provisioned, verify the following:
 * **App Health:** `curl https://<DOMAIN>/health` (Returns HTTP 200 `OK`)
 * **Metrics:** Connect via SSH and run `curl localhost:9100/metrics`
 * **Firewall:** Ensure `curl <IP>:8080` times out (blocked by UFW).
+```bash
+    chmod +x audit.sh
+    ./audit.sh
+```
