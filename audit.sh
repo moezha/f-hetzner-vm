@@ -1,5 +1,4 @@
 #!/bin/bash
-# --- 2026 Infrastructure Compliance Auditor ---
 set -u
 
 RED='\033[0;31m'
@@ -35,12 +34,11 @@ fi
 
 # 4. Check for Open Leaks (Internal vs External)
 echo -n "[ ] Checking for exposed internal services... "
-# Specifically checking if internal ports like 9100 are leaking to 0.0.0.0
-LEAKS=$(netstat -tulpn | grep LISTEN | grep -v "127.0.0.1" | grep -v "::1" | grep -E "9100|3000")
+LEAKS=$(ss -tulpn | grep LISTEN | grep -v "127.0.0.1" | grep -v "::1" | grep -E "9100|8080")
 if [ -z "$LEAKS" ]; then
     echo -e "${GREEN}PASSED: No leaks detected.${NC}"
 else
-    echo -e "${RED}WARNING: Internal services may be public!${NC}"
+    echo -e "${RED}WARNING: Internal services (9100/8080) are exposed to the PUBLIC!${NC}"
 fi
 
 # 5. Check Docker Health
