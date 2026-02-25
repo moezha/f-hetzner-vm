@@ -7,7 +7,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 # install node exporter for system health metrics (cpu, ram, disk)
 apt-get install -y -q prometheus-node-exporter
-systemctl enable --now prometheus-node-exporter
+echo 'ARGS="--web.listen-address=127.0.0.1:9100"' > /etc/default/prometheus-node-exporter
+systemctl restart prometheus-node-exporter
+
+systemctl enable --now prometheus-node-exporter || true
 
 # force stricter log rotation for nginx to prevent disk bloat
 # keeps 14 days of logs, compresses them, and signals nginx to reload
