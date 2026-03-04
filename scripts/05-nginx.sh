@@ -47,7 +47,7 @@ systemctl restart nginx
 
 # auto-ssl via certbot (req 5)
 # skips issuance if no email is provided or if using a local/dummy domain
-if [[ -n "$LE_EMAIL" && "$DOMAIN" =~ \.[a-z]+$ ]]; then
+if [[ -n "$LE_EMAIL" && "$DOMAIN" != "localhost" && "$DOMAIN" != *.local ]]; then
     echo "requesting ssl cert for $DOMAIN..."
     certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$LE_EMAIL" --redirect
     
