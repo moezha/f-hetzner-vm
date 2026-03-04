@@ -9,7 +9,7 @@ The infrastructure is built on Ubuntu 22.04 LTS and structured around modular sh
 * **Runtime:** Docker & Docker Compose (running a lightweight Go `http-echo` container).
 * **Web Tier:** Nginx acting as a reverse proxy, with automated Let's Encrypt SSL.
 * **Security:** UFW (default deny), Fail2ban (SSH protection), and strict OpenSSH hardening.
-* **Monitoring:** Prometheus Node Exporter (system metrics) and strict log rotation.
+* **Monitoring:** Prometheus Server, Node Exporter (host metrics), cAdvisor (container metrics), Grafana (visualization), and strict log rotation.
 
 ##  Key Architectural Decisions
 
@@ -17,7 +17,7 @@ The infrastructure is built on Ubuntu 22.04 LTS and structured around modular sh
     Instead of a single monolithic script, the setup is divided into logical modules (`01-system.sh` to `06-monitor.sh`). State checks (e.g., `if ! command -v docker`) ensure scripts can be re-run safely without breaking existing configurations.
 2.  **Defense in Depth (Security)**
     * **Root Disabled:** Root SSH login and password authentication are completely disabled. 
-    * **Least Privilege:** A dedicated `deploy` user is created and added to the `docker` group, allowing CI/CD pipelines to manage containers without `sudo` access.
+    * **Least Privilege:** A dedicated `deploy` user is created. To prevent trivial root escalation via the Docker socket, the user is strictly excluded from the `docker` group. Instead, granular, passwordless `sudo` access is granted specifically for required Docker binaries.
     * **Host-Level Firewall:** UFW is configured directly on the OS. Even if the cloud provider's external firewall is misconfigured, the server remains isolated (only ports 22, 80, and 443 are exposed).
 3.  **Preventing Disk Exhaustion (Reliability)**
     Default Docker and Nginx configurations will eventually fill a server's disk with logs. This setup injects a `daemon.json` to limit container logs (max 50MB, 3 files) and enforces aggressive `logrotate` rules for Nginx.
@@ -46,13 +46,18 @@ To test the deployment locally on Windows, execute the provided PowerShell harne
 
 ### 3. inside vm testing:
 ```bash
-    sed -i 's/\r$//' setup.sh scripts/*.sh config.env && chmod +x setup.sh && chown root:root config.env && chmod 600 config.env && ./setup.sh
+    # Fix Windows line endings and secure the config file
+    sed -i 's/\r$//' setup.sh scripts/*.sh config.env Makefile
+    chown root:root config.env && chmod 600 config.env
+    
+    # Run the automated setup via the Makefile entry point
+    make install
 ```
 
 ## 🔍 Validation & Health Checks
 Once provisioned, verify the following:
 * **App Health:** `curl https://<DOMAIN>/health` (Returns HTTP 200 `OK`)
-* **Metrics:** Connect via SSH and run `curl localhost:9100/metrics`
+* **Metrics & Dashboards:** Connect via SSH and verify Node Exporter (`curl localhost:9100/metrics`). Grafana is accessible locally on port 3000, and cAdvisor on port 8081.
 * **Firewall:** Ensure `curl <IP>:8080` times out (blocked by UFW).
 ```bash
     chmod +x audit.sh
