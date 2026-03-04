@@ -5,12 +5,26 @@ echo "--- setting up monitoring & log rotation ---"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# install node exporter for system health metrics (cpu, ram, disk)
-apt-get install -y -q prometheus-node-exporter
+# install node exporter and local prometheus server
+apt-get install -y -q prometheus-node-exporter prometheus
+
+# node exporter config
 echo 'ARGS="--web.listen-address=127.0.0.1:9100"' > /etc/default/prometheus-node-exporter
 systemctl restart prometheus-node-exporter
+systemctl enable --now prometheus-node-exporter
 
-systemctl enable --now prometheus-node-exporter || true
+# prometheus config
+cat > /etc/prometheus/prometheus.yml << 'EOF'
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+EOF
+
+systemctl restart prometheus
+systemctl enable --now prometheus
 
 # force stricter log rotation for nginx to prevent disk bloat
 # keeps 14 days of logs, compresses them, and signals nginx to reload
