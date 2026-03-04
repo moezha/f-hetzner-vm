@@ -69,7 +69,7 @@ docker run \
   --volume=/sys:/sys:ro \
   --volume=/var/lib/docker/:/var/lib/docker:ro \
   --volume=/dev/disk/:/dev/disk:ro \
-  --publish=8081:8080 \
+  --publish=127.0.0.1:8081:8080 \
   --detach=true \
   --name=cadvisor \
   --restart=always \
