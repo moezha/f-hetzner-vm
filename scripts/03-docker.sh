@@ -22,9 +22,10 @@ fi
 # enable on boot
 systemctl enable --now docker
 
-# grant deploy user access (no sudo needed for containers)
+# grant deploy user access via sudoers
 if id "$DEPLOY_USER" &>/dev/null; then
-    usermod -aG docker "$DEPLOY_USER"
+    echo "$DEPLOY_USER ALL=(root) NOPASSWD: /usr/bin/docker, /usr/bin/docker compose" > "/etc/sudoers.d/90-${DEPLOY_USER}-deploy"
+    chmod 0440 "/etc/sudoers.d/90-${DEPLOY_USER}-deploy"
 fi
 
 # set global log limits to prevent disk exhaustion
