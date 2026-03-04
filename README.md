@@ -45,21 +45,33 @@ To test the deployment locally on Windows, execute the provided PowerShell harne
 ```
 
 ### 3. inside vm testing:
-```bash
-    # Fix Windows line endings and secure the config file
-    sed -i 's/\r$//' setup.sh scripts/*.sh config.env Makefile
-    chown root:root config.env && chmod 600 config.env
-    
-    # Run the automated setup via the Makefile entry point
-    make install
-```
+Transfer the repository to your remote server using `scp` (or clone it directly via Git), then execute the setup as `root`:
 
-## 🔍 Validation & Health Checks
-Once provisioned, verify the following:
-* **App Health:** `curl https://<DOMAIN>/health` (Returns HTTP 200 `OK`)
-* **Metrics & Dashboards:** Connect via SSH and verify Node Exporter (`curl localhost:9100/metrics`). Grafana is accessible locally on port 3000, and cAdvisor on port 8081.
-* **Firewall:** Ensure `curl <IP>:8080` times out (blocked by UFW).
 ```bash
-    chmod +x audit.sh
-    ./audit.sh
+# 1. SSH into the server as root
+ssh root@<SERVER_IP>
+
+# 2. Navigate to the project directory
+cd /path/to/f-hetzner-vm
+
+# 3. Sanitize Windows line endings (if copied from a Windows host)
+sed -i 's/\r$//' setup.sh scripts/*.sh config.env Makefile
+
+# 4. Secure the configuration file
+chown root:root config.env && chmod 600 config.env
+
+# 5. Run the automated setup via the Makefile entry point
+# (If 'make' is missing, install it via: apt update && apt install -y make)
+make install
+
+# ALTERNATIVE: If you prefer not to install make, execute the script directly:
+# chmod +x setup.sh && ./setup.sh
 ```
+* **Metrics & Dashboards:** Because UFW blocks external access to the monitoring ports, access the UI securely using SSH local port forwarding from your machine:
+  
+  ``` bash 
+  ssh -i <private-key> -L 3000:localhost:3000 -L 9090:localhost:9090 -L 8081:localhost:8081 deploy@<SERVER_IP>`
+  ```
+  * **Grafana:** http://localhost:3000
+  * **Prometheus:** http://localhost:9090
+  * **cAdvisor:** http://localhost:8081
