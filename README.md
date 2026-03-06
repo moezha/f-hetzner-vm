@@ -67,11 +67,12 @@ make install
 # ALTERNATIVE: If you prefer not to install make, execute the script directly:
 # chmod +x setup.sh && ./setup.sh
 ```
-* **Metrics & Dashboards:** Because UFW blocks external access to the monitoring ports, access the UI securely using SSH local port forwarding from your machine:
+* **Metrics & Dashboards:** The monitoring interfaces are routed through Nginx and protected via Basic Authentication. 
   
-  ``` bash 
-  ssh -i <private-key> -L 3000:localhost:3000 -L 9090:localhost:9090 -L 8081:localhost:8081 deploy@<SERVER_IP>`
-  ```
-  * **Grafana:** http://localhost:3000
-  * **Prometheus:** http://localhost:9090
-  * **cAdvisor:** http://localhost:8081
+  log in credentials:
+  * **Username:** `admin`
+  * **Password:** `admin`
+
+  * **Grafana:** `http(s)://<SERVER_IP_OR_DOMAIN>/grafana/`
+  * **Prometheus:** `http(s)://<SERVER_IP_OR_DOMAIN>/prometheus/`
+  * **cAdvisor:** `http(s)://<SERVER_IP_OR_DOMAIN>/cadvisor/`
