@@ -43,6 +43,7 @@ export TIMEZONE="${TIMEZONE:-}"
 export DEPLOY_USER="${DEPLOY_USER:-}"
 export DOMAIN="${DOMAIN:-}"
 export LE_EMAIL="${LE_EMAIL:-}"
+export MONITOR_PASSWORD="${MONITOR_PASSWORD:-}"
 
 # Clean up "none" placeholders from GitHub
 [[ "$DOMAIN" == "none" ]] && export DOMAIN=""
@@ -51,8 +52,8 @@ export LE_EMAIL="${LE_EMAIL:-}"
 # --- Pre-flight Checks ---
 # ... check root ...
 # 2. Check for required variables
-if [ -z "$HOSTNAME" ] || [ -z "$TIMEZONE" ] || [ -z "$DEPLOY_USER" ]; then
-    error "Missing required environment variables (SERVER_HOSTNAME, TIMEZONE, or DEPLOY_USER)."
+if [ -z "$HOSTNAME" ] || [ -z "$TIMEZONE" ] || [ -z "$DEPLOY_USER" ] || [ -z "$MONITOR_PASSWORD" ]; then
+    error "Missing required environment variables (SERVER_HOSTNAME, TIMEZONE, or DEPLOY_USER, , or MONITOR_PASSWORD)."
 fi
 
 # 3. OS Version Guard

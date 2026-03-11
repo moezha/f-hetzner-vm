@@ -11,8 +11,8 @@ echo "--- configuring nginx & ssl ---"
 export DEBIAN_FRONTEND=noninteractive
 apt-get install -y -q nginx certbot python3-certbot-nginx apache2-utils
 
-# create basic auth credentials (admin:admin)
-htpasswd -bc /etc/nginx/.htpasswd admin admin
+# create basic auth credentials
+htpasswd -bc /etc/nginx/.htpasswd admin "$MONITOR_PASSWORD"
 
 # nuke the default monolith config
 rm -f /etc/nginx/sites-enabled/default
