@@ -24,7 +24,7 @@ systemctl enable --now docker
 
 # grant deploy user access via sudoers
 if id "$DEPLOY_USER" &>/dev/null; then
-    echo "$DEPLOY_USER ALL=(root) NOPASSWD: /usr/bin/docker, /usr/bin/docker compose" > "/etc/sudoers.d/90-${DEPLOY_USER}-deploy"
+    echo "$DEPLOY_USER ALL=(root) NOPASSWD: /usr/bin/docker compose -f /opt/demo-app/docker-compose.yml *" > "/etc/sudoers.d/90-${DEPLOY_USER}-deploy"
     chmod 0440 "/etc/sudoers.d/90-${DEPLOY_USER}-deploy"
 fi
 
