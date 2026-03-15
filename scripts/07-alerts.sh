@@ -11,23 +11,23 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get install -y -q mailutils postfix
 
 # 2. Create the notification script
-cat > /usr/local/bin/ssh-login-notify.sh << 'EOF'
+cat > /usr/local/bin/ssh-login-notify.sh << EOF
 #!/bin/bash
 set -euo pipefail
-if [ "$PAM_TYPE" != "close_session" ]; then
-    RECIPIENT_EMAIL=$(printenv ALERT_EMAIL)
+if [ "\$PAM_TYPE" != "close_session" ]; then
+    RECIPIENT_EMAIL="$ALERT_EMAIL"
     
     # Only send if an email is actually configured
-    if [[ "$RECIPIENT_EMAIL" != "none" && -n "$RECIPIENT_EMAIL" ]]; then
-        SUBJECT="SSH Login Alert: $PAM_USER on $(hostname)"
+    if [[ "\$RECIPIENT_EMAIL" != "none" && -n "\$RECIPIENT_EMAIL" ]]; then
+        SUBJECT="SSH Login Alert: \$PAM_USER on \$(hostname)"
         MESSAGE="⚠️ SSH Login Detected
         ----------------        
-        User: $PAM_USER
-        IP:   $PAM_RHOST
-        Host: $(hostname)
-        Date: $(date)"
+        User: \$PAM_USER
+        IP:   \$PAM_RHOST
+        Host: \$(hostname)
+        Date: \$(date)"
 
-        echo "$MESSAGE" | mail -s "$SUBJECT" "$RECIPIENT_EMAIL"
+        echo "\$MESSAGE" | mail -s "\$SUBJECT" "\$RECIPIENT_EMAIL"
     fi
 fi
 EOF
