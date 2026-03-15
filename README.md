@@ -1,6 +1,6 @@
 ﻿# Hetzner VM Bootstrapping
 
-Automated deployment and hardening for Ubuntu 22.04 VMs using Multipass on Windows hosts. This setup includes specific patches for corporate network environments and cross-platform compatibility.
+Automated deployment and hardening for Ubuntu 22.04 VMs using Multipass on Windows hosts. This setup has been strictly hardened to pass enterprise security audits, featuring granular privilege management, advanced SSH lockdown, and an integrated, authenticated monitoring stack.
 
 ##  Architecture Overview
 
@@ -71,7 +71,7 @@ make install
   
   log in credentials:
   * **Username:** `admin`
-  * **Password:** `admin`
+  * **Password:** MONITOR_PASSWORD in config.env
 
   * **Grafana:** `http(s)://<SERVER_IP_OR_DOMAIN>/grafana/`
   * **Prometheus:** `http(s)://<SERVER_IP_OR_DOMAIN>/prometheus/`
