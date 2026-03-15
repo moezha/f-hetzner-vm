@@ -57,6 +57,7 @@ HOSTNAME="$VmName"
 TIMEZONE="Europe/Berlin"
 DEPLOY_USER="deploy"
 SSH_PUB_KEY="$((Get-Content $sshKey -Raw).Trim())"
+MONITOR_PASSWORD="admin"
 "@
 Set-Content -Path "config.env" -Value $envConfig -Encoding ASCII
 
