@@ -1,9 +1,13 @@
 #!/bin/bash
 set -euo pipefail
-# grab local vars for testing
-[ -f config.env ] && source config.env
 
-echo "--- [System] Starting Base Configuration ---"
+# --- 0. Validation Guard ---
+# Ensure required variables inherited from setup.sh/config.env are not empty
+if [[ -z "${HOSTNAME:-}" ]]; then error "Variable HOSTNAME is empty. Check your config.env file."; fi
+if [[ -z "${TIMEZONE:-}" ]]; then error "Variable TIMEZONE is empty. Check your config.env file."; fi
+if [[ -z "${DEPLOY_USER:-}" ]]; then error "Variable DEPLOY_USER is empty. Check your config.env file."; fi
+
+echo "--- [System] Validation Passed ---"
 
 # --- 1. System Update ---
 echo "Updating package lists and upgrading system..."
@@ -31,11 +35,25 @@ CURRENT_HOSTNAME=$(hostname)
 if [ "$CURRENT_HOSTNAME" != "$HOSTNAME" ]; then
     echo "Updating hostname to $HOSTNAME..."
     hostnamectl set-hostname "$HOSTNAME"
-    
-    # fix /etc/hosts to avoid sudo resolution lag
-    sed -i "s/127.0.0.1 localhost/127.0.0.1 localhost $HOSTNAME/" /etc/hosts
 else
     echo "Hostname is already correct."
+fi
+
+# Check if the exact line already exists (Idempotent check)
+if ! grep -qxF "127.0.1.1 $HOSTNAME" /etc/hosts; then
+    echo "Updating 127.0.1.1 entry in hosts file..."
+    
+    # Use grep -v to safely filter out any old 127.0.1.1 lines to a temp file
+    grep -v "^127\.0\.1\.1" /etc/hosts > /etc/hosts.tmp
+    
+    # Append the perfect new line
+    echo "127.0.1.1 $HOSTNAME" >> /etc/hosts.tmp
+    
+    # Overwrite using cat to preserve the original file's inode and permissions
+    cat /etc/hosts.tmp > /etc/hosts
+    rm -f /etc/hosts.tmp
+else
+    echo "Hosts file is already perfectly configured."
 fi
 
 # --- 4. Timezone ---

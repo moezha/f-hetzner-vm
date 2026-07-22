@@ -30,7 +30,7 @@ $netCmds = @(
 )
 
 foreach ($cmd in $netCmds) {
-    multipass exec $VmName -- bash -c $cmd | Out-Null
+    Invoke-Expression "multipass exec $VmName -- $cmd" | Out-Null
 }
 
 # Connectivity Check
@@ -56,7 +56,8 @@ $envConfig = @"
 HOSTNAME="$VmName"
 TIMEZONE="Europe/Berlin"
 DEPLOY_USER="deploy"
-SSH_PUB_KEY="$(Get-Content $sshKey)"
+SSH_PUB_KEY="$((Get-Content $sshKey -Raw).Trim())"
+MONITOR_PASSWORD="admin"
 "@
 Set-Content -Path "config.env" -Value $envConfig -Encoding ASCII
 
@@ -80,10 +81,10 @@ Log "Executing bootstrap..."
 multipass exec $VmName -- sudo apt-get update -qq
 
 # Sanitize scripts (LF conversion) and execute
-$execCmd = "find $RemoteDir -type f -name '*.sh' -exec sed -i 's/\r$//' {} \;"
-multipass exec $VmName -- bash -c $execCmd
+$execCmd = "find $RemoteDir -type f -name '*.sh' -exec sed -i 's/\r$//' {} \; && sed -i 's/\r$//' $RemoteDir/config.env"
+Invoke-Expression "multipass exec $VmName -- bash -c `"$execCmd`""
 
-$setupCmd = "cd $RemoteDir && chmod +x setup.sh && sudo ./setup.sh"
+$setupCmd = "cd $RemoteDir && sudo chown root:root config.env && sudo chmod 600 config.env && chmod +x setup.sh && sudo ./setup.sh"
 multipass exec $VmName -- bash -c $setupCmd
 
 # Final Report
